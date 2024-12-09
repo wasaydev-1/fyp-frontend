@@ -1,0 +1,331 @@
+/* Ensure box-sizing is set to border-box */
+* {
+  box-sizing: border-box; /* Include padding and border in element's total width and height */
+  font-family: Jost, sans-serif;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  margin: 0; /* Reset body margin to prevent overflow */
+  background-color: rgb(255, 255, 255);
+}
+
+.box-container {
+  display: flex;
+  flex-direction: column; /* Arrange boxes in a column */
+  width: 100%; /* Full width of the header */
+}
+
+/* Header container styling */
+.header-plant {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* Allow items to stretch to full width */
+  width: 100vw; /* Ensure the header takes full width of the viewport */
+  overflow: hidden; /* Prevent overflow if any child exceeds the header size */
+  background-color: transparent; /* Make header background transparent */
+}
+
+/* Top bar styling */
+.top-bar {
+  display: flex; /* Flex for aligning logo and nav links */
+  justify-content: space-between; /* Space between logo and nav links */
+  align-items: center; /* Center vertically */
+  width: 100%; /* Full width of the container */
+  padding: 2px; /* Padding for size */
+  color: #ffffff; /* Default text color */
+  border: 1px solid #ccc; /* Border for the top bar */
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  position: fixed;
+}
+
+/* When scrolled, the background color becomes white */
+.top-bar.scrolled,
+.box.scrolled {
+  background-color: white; /* Change background to white */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+/* Prevent hover effect from overriding the scrolled style */
+.top-bar.scrolled:hover,
+.box.scrolled:hover {
+  background-color: white !important; /* Ensure background stays white */
+}
+
+/* Optional: Change the text color when scrolled */
+.top-bar.scrolled .delivery-info,
+.top-bar.scrolled .auth-links a,
+.box.scrolled .logo,
+.box.scrolled .nav-links a {
+  color: black !important; /* Change text color to black */
+}
+
+.box.scrolled {
+  border-bottom: 0.2px solid #ccc;
+}
+
+.box.scrolled .search-icon,
+.box.scrolled .basket-icon {
+  filter: brightness(0) invert(0); /* Change icon to black */
+}
+
+.box {
+  width: 100%; /* Full width of the container */
+  padding: 11px; /* Padding inside the boxes */
+  border: none; /* Remove border */
+  text-align: left; /* Align text to the left inside the box */
+  display: flex; /* Use flex to align items */
+  align-items: center; /* Center vertically */
+  position: fixed;
+  top: 23px;
+}
+
+.delivery-info {
+  font-size: 11px; /* Decrease font size */
+  font-weight: bold;
+  line-height: 18px; /* Match the line-height to the top-bar height for vertical centering */
+  white-space: nowrap; /* Prevent text from wrapping */
+  margin-left: 21px;
+  opacity: 0.8; /* Slightly transparent */
+}
+
+.delivery-info:hover {
+  opacity: 1; /* Fully opaque on hover */
+  transform: scale(1.05); /* Slight scaling effect on hover */
+  margin-left: 25px;
+}
+
+/* Hover state */
+.hovered {
+  background-color: #ffffff; /* Background turns white when hovered */
+}
+
+/* Change text color to black when hovered on top-bar or box */
+.top-bar.hovered .nav-links a,
+.box.hovered .nav-links a,
+.top-bar.hovered .logo,
+.box.hovered .logo,
+.top-bar.hovered .auth-links a,
+.box.hovered .auth-links a,
+.top-bar.hovered .vertical-line,
+.box.hovered .vertical-line,
+.top-bar.hovered .delivery-info,
+.box.hovered .delivery-info {
+  color: black; /* Change link, logo, and auth link color to black */
+}
+
+.top-bar.hovered .nav-links a,
+.box.hovered .nav-links a {
+  color: black;
+}
+
+/* Logo style */
+.logo {
+  position: relative;
+  font-size: 24px; /* Font size for the logo */
+  font-weight: bold; /* Bold logo text */
+  color: #ffffff; /* Default logo color */
+  text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3), 4px 4px 0 rgba(0, 0, 0, 0.2); /* 3D effect */
+  margin-left: 10px; /* Left margin for spacing */
+  bottom: 1px;
+}
+
+/* Nav links style */
+.nav-links {
+  list-style-type: none; /* Remove bullet points */
+  margin: 0; /* Remove margin */
+  padding: 0; /* Remove padding */
+  display: flex; /* Flex for horizontal alignment */
+  justify-content: flex-end; /* Align links to the right */
+  align-items: center; /* Center vertically */
+}
+
+.nav-links li {
+  margin-left: 35px; /* Space between links */
+}
+
+/* Nav links default color is white */
+.nav-links a {
+  position: relative;
+  text-decoration: none; /* Remove underline */
+  color: #ffffff; /* Default link color is white */
+  font-weight: 600; /* Match font weight */
+  font-size: 14px; /* Match font size */
+  top: 1px;
+  opacity: 0.6; /* Default opacity for non-hovered links */
+  transition: color 0.3s ease, opacity 0.3s ease; /* Smooth transition for color */
+}
+
+/* Specific hover effect for each nav link */
+.nav-links a:hover {
+  color: rgba(255, 255, 255, 1); /* Make the hovered text fully bright */
+  opacity: 1; /* Full opacity on hover */
+}
+
+.nav-links a:hover:after {
+  transition-delay: 0.1s;
+  width: 60%; /* Expand underline on hover */
+}
+
+.nav-links a:after {
+  background-color: #1b1b1b;
+  bottom: -5px; /* Position slightly below the text */
+  content: "";
+  height: 2px; /* Height of the underline */
+  left: 0;
+  position: absolute;
+  transition: width 0.3s ease-out;
+  width: 0; /* Hidden by default */
+}
+
+/* Media query for screens below 600px */
+@media (max-width: 600px) {
+  .top-bar {
+    justify-content: center; /* Center content */
+  }
+
+  .nav-links {
+    display: none; /* Hide navigation links */
+  }
+
+  .logo {
+    margin-left: 0; /* Remove left margin for centered alignment */
+    text-align: center; /* Center text within the logo */
+  }
+}
+
+/* Auth links in the top-right corner */
+.auth-links {
+  display: flex;
+  gap: 21px; /* Space between login and signup links */
+  position: absolute;
+  right: 20px; /* Align to the right */
+  top: 3px; /* Position near the top */
+}
+
+.auth-links a {
+  color: white; /* Default color */
+  text-decoration: none; /* Remove underline */
+  font-size: 11.5px;
+  font-weight: 500;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); /* Subtle text shadow for better visibility */
+  display: flex; /* Ensure flex properties */
+  align-items: center; /* Center content vertically */
+  padding: 5px; /* Padding for spacing */
+  opacity: 0.8; /* Slightly transparent */
+  transition: opacity 0.3s ease; /* Smooth transition for opacity */
+}
+
+/* Hover effect to make it fully opaque */
+.auth-links a:hover {
+  opacity: 1; /* Full opacity on hover */
+}
+
+/* Vertical line between Login and Sign Up as a separate element */
+.vertical-line {
+  width: 1px;
+  height: 16px; /* Height of the line */
+  background-color: rgba(
+    255,
+    255,
+    255,
+    0.6
+  ); /* Lighter line color (60% opacity) */
+  margin: 0 10px; /* Space between links */
+  position: relative;
+  top: 1px; /* Adjust vertical alignment */
+  font-weight: lighter;
+}
+
+.auth-links a:hover {
+  text-decoration: underline; /* Underline on hover */
+}
+
+/* Media query for small screens */
+@media (max-width: 600px) {
+  .auth-links {
+    display: none; /* Hide login/signup links on small screens */
+  }
+}
+
+#login-text {
+  position: relative;
+  bottom: 2px;
+  left: 15px;
+}
+
+#signup-text {
+  position: relative;
+  bottom: 2px;
+  right: 15px;
+}
+
+/* Style for the search icon container */
+.search-icon {
+  position: absolute; /* Position it relative to the box */
+  right: 30px; /* Adjust this value to your preference */
+  top: 51px; /* Center vertically */
+  transform: translateY(-50%); /* Adjust for perfect vertical centering */
+  cursor: pointer; /* Show pointer on hover */
+  opacity: 1; /* Default opacity */
+  transition: opacity 0.3s ease; /* Smooth transition for opacity */
+}
+
+.box.hovered .search-icon img,
+.top-bar.hovered .search-icon img {
+  filter: brightness(0) invert(0); /* Change icon to black */
+}
+
+/* Additional styles for the icon container */
+.basket-icon {
+  position: absolute;
+  display: flex; /* Use flexbox for horizontal alignment */
+  align-items: center; /* Center icons vertically */
+  top: 34px;
+  left: -6px;
+}
+
+/* Container for the search and basket icons */
+.icon-container {
+  position: absolute; /* Position relative to the header */
+  right: 50px; /* Adjust the distance from the right edge */
+  top: -22px; /* Center vertically in the header */
+  transform: translateY(-50%); /* Perfect vertical centering */
+  display: flex; /* Align items in a row (side by side) */
+  align-items: center; /* Vertically center the icons */
+  gap: 0px; /* Completely remove the gap between the search and basket icons */
+  margin: 0; /* Ensure container has no extra margin */
+  padding: 0; /* Ensure container has no padding */
+}
+.basket-icon img {
+  width: 27px; /* Set the width of the basket icon */
+  height: 27px; /* Set the height of the basket icon */
+  filter: brightness(5) invert(1); /* Make it bright white by default */
+  margin: 0; /* Ensure there's no margin */
+  padding: 0; /* Ensure there's no padding */
+}
+
+/* Adjust size and style of the search icon */
+.search-icon img {
+  height: 21px; /* Adjust the height */
+  filter: brightness(5) invert(1); /* Ensure it's bright white by default */
+  margin: 0; /* Ensure there's no margin */
+  padding: 0; /* Ensure there's no padding */
+}
+
+/* Change color of the basket icon on hover */
+.box.hovered .basket-icon img,
+.top-bar.hovered .basket-icon img {
+  filter: brightness(0) invert(0); /* Change icon to black on hover */
+}
+
+.search-icon:hover {
+  opacity: 0.8; /* Slight fade on hover */
+}
+
+.basket-icon:hover {
+  cursor: pointer;
+}

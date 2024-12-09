@@ -1,0 +1,121 @@
+/* Sidebar.css */
+.sidebar {
+  width: 280px;
+  height: 100vh;
+  background: linear-gradient(45deg, #2c3e50 0%, #3498db 100%);
+  color: #ffffff;
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: -4px 0 15px rgba(0, 0, 0, 0.1);
+  transition: width 0.3s ease;
+  z-index: 1000;
+  overflow: hidden;
+}
+
+.sidebar h2 {
+  padding: 25px 20px;
+  text-align: center;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+  background: rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin: 0;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+  flex-grow: 1;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  padding: 15px 20px;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  gap: 15px;
+  position: relative;
+  overflow: hidden;
+}
+
+.nav-link::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.1);
+  transition: width 0.3s ease;
+  z-index: 0;
+}
+
+.nav-link:hover::before {
+  width: 100%;
+}
+
+.nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.nav-link.active {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.nav-link svg {
+  font-size: 1.3rem;
+  color: rgba(255, 255, 255, 0.7);
+  transition: color 0.3s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.nav-link:hover svg {
+  color: #ffffff;
+}
+
+.nav-link.active svg {
+  color: #ffffff;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .sidebar {
+    width: 80px;
+    overflow: hidden;
+  }
+
+  .sidebar h2 {
+    font-size: 1.3rem;
+    padding: 20px 10px;
+  }
+
+  .sidebar nav {
+    align-items: center;
+  }
+
+  .nav-link {
+    justify-content: center;
+    padding: 15px 10px;
+  }
+
+  .nav-link span {
+    display: none;
+  }
+
+  .nav-link svg {
+    margin: 0;
+  }
+}
