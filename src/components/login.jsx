@@ -132,8 +132,8 @@ const Login = () => {
       });
 
       // Store the token
-      localStorage.setItem("authToken", response.data.token);
-
+      localStorage.setItem("authToken", response.data.data.token);
+      console.log("res", response.data.data.token);
       // Redirect to the previous page or home
       const origin = location.state?.from?.pathname || "/";
       navigate(origin);

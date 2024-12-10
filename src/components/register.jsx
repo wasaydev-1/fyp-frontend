@@ -27,7 +27,7 @@ const Register = () => {
   const [animationClass, setAnimationClass] = useState("");
   const [selectedAuthOption, setSelectedAuthOption] = useState("signup");
   const [isSignInClicked, setIsSignInClicked] = useState(false);
-  const [role, setRole] = useState("customer");
+  const [role, setRole] = useState("Customer");
   const [rePassword, setRePassword] = useState("");
   const [registrationError, setRegistrationError] = useState(""); // Added for API error handling
 
@@ -155,7 +155,7 @@ const Register = () => {
         rePassword,
         role,
       });
-
+      console.log("res", response);
       alert(response.data.message);
       navigate("/login");
     } catch (error) {

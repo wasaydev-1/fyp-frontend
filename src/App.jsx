@@ -48,7 +48,7 @@ function App() {
   const [lastActivityTime, setLastActivityTime] = useState(Date.now());
 
   const inactivityTimeout = 15 * 60 * 1000; // 15 minutes
-
+  const publicRoutes = ["/", "/about"];
   // Handle user activity and reset inactivity timer
   const handleUserActivity = () => {
     setLastActivityTime(Date.now());

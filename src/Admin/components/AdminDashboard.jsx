@@ -37,24 +37,7 @@ const AdminDashboard = () => {
     },
   ]);
 
-  const [payments, setPayments] = useState([
-    {
-      id: 1,
-      paymentId: "PAY001",
-      customerName: "John Doe",
-      amount: 49.98,
-      date: "2024-01-15",
-      status: "Completed",
-    },
-    {
-      id: 2,
-      paymentId: "PAY002",
-      customerName: "Jane Smith",
-      amount: 29.99,
-      date: "2024-01-14",
-      status: "Pending",
-    },
-  ]);
+  const [payments, setPayments] = useState([]);
   const baseUrl = "http://localhost:3000/uploads/";
   const [formData, setFormData] = useState({
     name: "",
@@ -80,6 +63,10 @@ const AdminDashboard = () => {
         const plantsResponse = await axios.get("http://localhost:3000/plants");
         setPlants(plantsResponse.data.data);
         console.log("Fetched Plants:", plantsResponse.data.data); // Log fetched data directly
+        const paymentsResponse = await axios.get(
+          "http://localhost:3000/payments"
+        );
+        setPayments(paymentsResponse.data);
       } catch (error) {
         console.error("Error fetching plants:", error);
       }
@@ -443,16 +430,23 @@ const AdminDashboard = () => {
                     {payments.map((payment) => (
                       <tr key={payment.id}>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {payment.paymentId}
+                          {payment.id}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {payment.customerName}
+                          {payment.paymentMethodId}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           ${payment.amount}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {payment.date}
+                          {new Date(payment.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            }
+                          )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span

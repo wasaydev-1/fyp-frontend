@@ -4,6 +4,8 @@ import "./Header.css";
 import icon from "../modules/Icons/cart.png";
 import userIcon from "../modules/Icons/notification.png";
 import { CartContext } from "../context/CartContext";
+import axios from "axios";
+import { decodeJwt } from "jose";
 
 const Header = () => {
   const { cartCount } = useContext(CartContext);
@@ -14,7 +16,11 @@ const Header = () => {
   const servicesLinkRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
-
+  const [userInfo, setUserInfo] = useState({
+    name: "",
+    email: "",
+  });
+  const [error, setError] = useState();
   // Define routes with white backgrounds
   const pagesWithWhiteBackground = [
     "/Page-Shop",
@@ -43,6 +49,64 @@ const Header = () => {
       setScrolled(window.scrollY > 10);
     }
   };
+
+  useEffect(() => {
+    const storedTokens = {
+      authToken: localStorage.getItem("authToken"),
+      token: localStorage.getItem("token"),
+      userToken: localStorage.getItem("userToken"),
+    };
+
+    const authToken =
+      storedTokens.authToken || storedTokens.token || storedTokens.userToken;
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/user", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log("Full User Details Response:", response.data);
+
+        if (response.data && response.data.data) {
+          // Decode the authToken to get the user ID
+          const decodedToken = decodeJwt(authToken);
+          console.log("Decoded Token:", decodedToken);
+
+          // `sub` represents the user ID in the token
+          const userId = decodedToken.sub;
+
+          // Find the user matching the decoded user ID
+          const userDetails = response.data.data.find(
+            (user) => user.id === userId
+          );
+
+          if (userDetails) {
+            setUserInfo(userDetails);
+          } else {
+            console.warn("No matching user found for the given token.");
+            setError("No user details found.");
+          }
+        }
+      } catch (err) {
+        console.error("Detailed Error:", {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError("Failed to fetch user details");
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
 
   useEffect(() => {
     // Ensure `isScrolled` is true for white background pages
@@ -100,7 +164,7 @@ const Header = () => {
           Free Delivery on orders above Rs. 5000
         </span>
         <div className="auth-links flex">
-          <div className="login-text" onClick={handleLogout}>
+          {/* <div className="login-text" onClick={handleLogout}>
             Logout
           </div>
           <div className="vertical-line"></div>
@@ -110,7 +174,29 @@ const Header = () => {
           <div className="vertical-line"></div>
           <div className="register-text" onClick={() => navigate("/register")}>
             Sign Up
-          </div>
+          </div> */}
+          {userInfo.username ? (
+            <>
+              <div className="login-text">Welcome, {userInfo.username}</div>
+              <div className="vertical-line"></div>
+              <div className="login-text" onClick={handleLogout}>
+                Logout
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="login-text" onClick={() => navigate("/login")}>
+                Login
+              </div>
+              <div className="vertical-line"></div>
+              <div
+                className="register-text"
+                onClick={() => navigate("/register")}
+              >
+                Sign Up
+              </div>
+            </>
+          )}
         </div>
       </div>
 

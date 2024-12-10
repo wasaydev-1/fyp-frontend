@@ -7,6 +7,7 @@ import { useCart } from "../context/CartContext";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import PaymentForm from "./PaymentForm";
+import axios from "axios";
 const stripePromise = loadStripe(
   "pk_test_51QSf3dGUTm1vPJ2W4Uu12jvAdeFeas7P2XodI9pnknOOb8twSbw2t8j7LxY49ja4yLyYWZiucy2lsgSF3UZERUq1006adhqCdr"
 );
@@ -181,20 +182,87 @@ const ShoppingCart = () => {
     setShowPaymentForm(true);
   };
 
-  const handlePaymentSuccess = () => {
-    setShowPaymentForm(false);
-    setPaymentSuccess(true);
-    setActiveTab("cartTab3");
-    setOrderDetails({
-      items: [...cartItems],
-      totalPrice: totalPrice,
-      orderNumber: orderNumber,
-      selectedPayment: selectedPayment,
-      currentDate: new Date(),
-    });
-    clearCart();
+  // const handlePaymentSuccess = () => {
+  //   setShowPaymentForm(false);
+  //   setPaymentSuccess(true);
+  //   setActiveTab("cartTab3");
+  //   setOrderDetails({
+  //     items: [...cartItems],
+  //     totalPrice: totalPrice,
+  //     orderNumber: orderNumber,
+  //     selectedPayment: selectedPayment,
+  //     currentDate: new Date(),
+  //   });
+  //   clearCart();
 
-    //clearCart(); // Optional: clear cart after successful payment
+  //   //clearCart(); // Optional: clear cart after successful payment
+  // };
+
+  // const handlePaymentSuccess = async () => {
+  //   try {
+  //     // Update stock for each item in the cart after successful payment
+  //     for (const item of cartItems) {
+  //       await axios.patch(
+  //         `http://localhost:3000/plants/${item.productID}/purchase`,
+  //         {
+  //           quantity: item.quantity,
+  //         }
+  //       );
+  //     }
+
+  //     setShowPaymentForm(false);
+  //     setPaymentSuccess(true);
+  //     setActiveTab("cartTab3");
+  //     setOrderDetails({
+  //       items: [...cartItems],
+  //       totalPrice: totalPrice,
+  //       orderNumber: orderNumber,
+  //       selectedPayment: selectedPayment,
+  //       currentDate: new Date(),
+  //     });
+
+  //     // Clear the cart
+  //     clearCart();
+  //   } catch (error) {
+  //     console.error("Error updating stock after payment:", error);
+  //     alert(
+  //       "There was an issue processing your order. Please contact support."
+  //     );
+  //   }
+  // };
+
+  const handlePaymentSuccess = async () => {
+    try {
+      // Iterate through cart items and call the purchase endpoint for each item
+      for (const item of cartItems) {
+        await axios.patch(
+          `http://localhost:3000/plants/${item.productID}/purchase`,
+          {
+            quantity: item.quantity,
+          }
+        );
+      }
+
+      // Clear the cart and show a success message
+      clearCart();
+      setShowPaymentForm(false);
+      setPaymentSuccess(true);
+      setActiveTab("cartTab3");
+      setOrderDetails({
+        items: [...cartItems],
+        totalPrice: totalPrice,
+        orderNumber: orderNumber,
+        selectedPayment: selectedPayment,
+        currentDate: new Date(),
+      });
+
+      alert("Payment successful! Items have been purchased.");
+    } catch (error) {
+      console.error("Error processing payment:", error);
+      alert(
+        "Payment successful, but we encountered an issue processing your order. Please contact support."
+      );
+    }
   };
 
   const handlePhoneChange = (e) => {
@@ -472,7 +540,8 @@ const ShoppingCart = () => {
                                     removeFromCart(
                                       item.productID,
                                       item.size,
-                                      item.color
+                                      item.color,
+                                      item.quantity
                                     )
                                   }
                                 />

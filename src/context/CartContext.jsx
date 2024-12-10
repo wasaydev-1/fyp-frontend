@@ -1,3 +1,4 @@
+import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
 
 // Create Cart Context
@@ -51,15 +52,39 @@ export const CartProvider = ({ children }) => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
 
-  const removeFromCart = (productID, size, color) => {
-    setCart((prevCart) =>
-      prevCart.filter(
-        (item) =>
-          item.productID !== productID ||
-          item.size !== size ||
-          item.color !== color
-      )
-    );
+  // const removeFromCart = (productID, size, color) => {
+  //   setCart((prevCart) =>
+  //     prevCart.filter(
+  //       (item) =>
+  //         item.productID !== productID ||
+  //         item.size !== size ||
+  //         item.color !== color
+  //     )
+  //   );
+  // };
+  const removeFromCart = async (productID, size, color, quantity) => {
+    console.log(quantity);
+    try {
+      // Make an API call to release the reserved stock
+      await axios.patch(`http://localhost:3000/plants/${productID}/release`, {
+        quantity,
+      });
+
+      // Update the cart state
+      setCart((prevCart) =>
+        prevCart.filter(
+          (item) =>
+            item.productID !== productID ||
+            item.size !== size ||
+            item.color !== color
+        )
+      );
+
+      alert("Item removed from the cart and stock updated.");
+    } catch (error) {
+      console.error("Error releasing the stock:", error);
+      alert("Failed to update the stock. Please try again.");
+    }
   };
 
   const updateProductQuantity = (productID, size, color, quantity) => {

@@ -2,7 +2,11 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import PaymentForm from "./PaymentForm";
-
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+const stripePromise = loadStripe(
+  "pk_test_51QSf3dGUTm1vPJ2W4Uu12jvAdeFeas7P2XodI9pnknOOb8twSbw2t8j7LxY49ja4yLyYWZiucy2lsgSF3UZERUq1006adhqCdr"
+);
 const tiers = [
   {
     name: "Basic",
@@ -37,15 +41,21 @@ function classNames(...classes) {
 }
 
 const Subscription = () => {
-  const location = useLocation();
-  const { totalPrice, locationDetails, selectedProducts } =
-    location.state || {};
+  const locationState = useLocation();
+  const { locationDetails, selectedProducts, locationName, location } =
+    locationState.state || {};
 
   const [selectedTier, setSelectedTier] = useState(null);
   const [months, setMonths] = useState(1);
   const [showMonthInput, setShowMonthInput] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
+  const total = selectedProducts
+    ? selectedProducts.reduce(
+        (sum, product) => sum + product.price * product.quantity,
+        0
+      )
+    : 0;
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
@@ -60,10 +70,10 @@ const Subscription = () => {
   };
 
   const calculateTotalCost = () => {
-    if (!selectedTier) return totalPrice;
+    if (!selectedTier) return total;
     const tierPrice = parseFloat(selectedTier.priceMonthly.replace("$", ""));
     const subscriptionCost = tierPrice * months;
-    return totalPrice + subscriptionCost;
+    return total + subscriptionCost;
   };
 
   return (
@@ -78,7 +88,7 @@ const Subscription = () => {
             clipPath:
               "polygon(74.1% 44.1%, 100% 61.6%, 97.5% 26.9%, 85.5% 0.1%, 80.7% 2%, 72.5% 32.5%, 60.2% 62.4%, 52.4% 68.1%, 47.5% 58.3%, 45.2% 34.5%, 27.5% 76.7%, 0.1% 64.9%, 17.9% 100%, 27.6% 76.8%, 76.1% 97.7%, 74.1% 44.1%)",
           }}
-          className="mx-auto aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-30"
+          className="mx-auto aspect-[1155/678] w-[72.1875rem] bg-gradient-to-tr from-[#ff80b5] to-[#73f286] opacity-30"
         />
       </div>
 
@@ -101,27 +111,24 @@ const Subscription = () => {
             ))}
           </div>
           <div className="mt-3 text-right font-semibold">
-            Initial Total: ${totalPrice?.toFixed(2)}
+            Initial Total: ${total?.toFixed(2)}
           </div>
         </div>
 
         <div className="mb-6">
           <h3 className="text-lg font-semibold mb-3">Delivery Location</h3>
           <div className="space-y-2 bg-gray-50 p-4 rounded-md">
-            {locationDetails?.name && (
-              <p className="font-medium">{locationDetails.name}</p>
-            )}
-            <p>{locationDetails?.address}</p>
+            <p className="font-medium">{locationName}</p>
+
             <p className="text-sm text-gray-600">
-              Coordinates: {locationDetails?.coordinates?.lat},{" "}
-              {locationDetails?.coordinates?.lon}
+              Coordinates: {location[0]} , {location[1]}
             </p>
           </div>
         </div>
       </div>
 
       <div className="mx-auto max-w-2xl text-center lg:max-w-4xl">
-        <h2 className="text-base font-semibold leading-7 text-indigo-600">
+        <h2 className="text-base font-bold leading-7 text-green-600">
           Add Subscription Plan
         </h2>
         <p className="mt-2 text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
@@ -149,7 +156,7 @@ const Subscription = () => {
             <h3
               id={tier.id}
               className={classNames(
-                tier.featured ? "text-indigo-400" : "text-indigo-600",
+                tier.featured ? "text-green-400" : "text-green-600",
                 "text-base font-semibold leading-7"
               )}
             >
@@ -192,7 +199,7 @@ const Subscription = () => {
                 <li key={feature} className="flex gap-x-3">
                   <CheckIcon
                     className={classNames(
-                      tier.featured ? "text-indigo-400" : "text-indigo-600",
+                      tier.featured ? "text-green-400" : "text-green-600",
                       "h-6 w-5 flex-none"
                     )}
                   />
@@ -204,8 +211,8 @@ const Subscription = () => {
               onClick={() => handleGetStartedClick(tier)}
               className={classNames(
                 tier.featured
-                  ? "bg-indigo-500 text-white shadow-sm hover:bg-indigo-400 focus-visible:outline-indigo-500"
-                  : "text-indigo-600 ring-1 ring-inset ring-indigo-200 hover:ring-indigo-300 focus-visible:outline-indigo-600",
+                  ? "bg-green-500 text-white shadow-sm hover:bg-green-400 focus-visible:outline-green-500"
+                  : "text-green-600 ring-1 ring-inset ring-green-200 hover:ring-green-300 focus-visible:outline-green-600",
                 "mt-8 block w-full rounded-md px-3.5 py-2.5 text-center text-sm font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 sm:mt-10"
               )}
             >
@@ -237,7 +244,7 @@ const Subscription = () => {
             <div className="border-t pt-4">
               <div className="flex justify-between mb-2">
                 <span>Initial Products Total:</span>
-                <span>${totalPrice?.toFixed(2)}</span>
+                <span>${total?.toFixed(2)}</span>
               </div>
               <div className="flex justify-between mb-2">
                 <span>Subscription Cost:</span>
@@ -255,25 +262,31 @@ const Subscription = () => {
               </div>
             </div>
 
-            <button
-              onClick={() => setShowPaymentForm(true)} // Show the PaymentForm when clicked
-              className="w-full bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors"
-            >
-              Proceed to Payment
-            </button>
+            {!showPaymentForm ? (
+              <button
+                onClick={() => setShowPaymentForm(true)}
+                className="mt-4 w-full bg-green-600 text-white py-2 rounded-md"
+              >
+                Proceed to Payment
+              </button>
+            ) : null}
           </div>
-        </div>
-      )}
-      {showPaymentForm && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <PaymentForm
-            onClose={() => setShowPaymentForm(false)}
-            totalPrice={calculateTotalCost()}
-          />
+
+          {showPaymentForm && (
+            <Elements stripe={stripePromise}>
+              <PaymentForm
+                totalPrice={calculateTotalCost().toFixed(2)}
+                onClose={() => setShowPaymentForm(false)}
+                onPaymentSuccess={() => {
+                  setShowPaymentForm(false);
+                  navigate("/subscription"); // Navigate to a success page after payment
+                }}
+              />
+            </Elements>
+          )}
         </div>
       )}
     </div>
   );
 };
-
 export default Subscription;

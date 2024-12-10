@@ -21,6 +21,8 @@
     "@stripe/stripe-js": "^5.2.0",
     "axios": "^1.7.8",
     "bootstrap": "^5.3.3",
+    "jose": "^5.9.6",
+    "jwt-decode": "^4.0.0",
     "leaflet": "^1.9.4",
     "lodash": "^4.17.21",
     "lodash.debounce": "^4.0.8",

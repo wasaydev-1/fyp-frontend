@@ -219,7 +219,7 @@ const PaymentForm = ({ totalPrice, onClose, onPaymentSuccess }) => {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 animate-fade-in-up">
+      <div className="relative w-full max-w-md bg-gradient-to-tr from-[#fcdfeb] to-[#8df19c] rounded-2xl shadow-2xl p-6 animate-fade-in-up">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition-colors"
