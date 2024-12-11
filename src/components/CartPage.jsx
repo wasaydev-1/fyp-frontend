@@ -52,6 +52,8 @@ const ShoppingCart = () => {
       ? storedOrderNumber
       : Math.floor(Math.random() * 100000);
   });
+  const [databaseOrderId, setDatabaseOrderId] = useState([]);
+  const [error, setError] = useState();
 
   const baseUrl = "http://localhost:3000/uploads/";
   useEffect(() => {
@@ -252,16 +254,18 @@ const ShoppingCart = () => {
       clearCart();
       setShowPaymentForm(false);
       setPaymentSuccess(true);
-      setActiveTab("cartTab3");
+      handleOrderPlacement();
+
       setOrderDetails({
         items: [...cartItems],
         totalPrice: totalPrice,
-        orderNumber: orderNumber,
+        orderNumber: databaseOrderId,
         selectedPayment: selectedPayment,
         currentDate: new Date(),
       });
 
       alert("Payment successful! Items have been purchased.");
+      setActiveTab("cartTab3");
     } catch (error) {
       console.error("Error processing payment:", error);
       alert(
@@ -410,14 +414,12 @@ const ShoppingCart = () => {
     //   alert("Please select a location and enter your complete address.");
     //   return;
     // }
-    console.log(cartItems);
     // Map selected products to include their IDs and quantities
     const products = Object.values(cartItems).map((product) => ({
-      plantId: product.productId,
+      plantId: product.productID,
       quantity: product.quantity,
       name: product.name,
     }));
-
     // Prepare order data payload
     const orderData = {
       userId: userInfo.id, // User ID
@@ -445,7 +447,11 @@ const ShoppingCart = () => {
 
       if (response.status === 201) {
         console.log("Order saved successfully:", response.data);
-        setShowPaymentForm(true); // Proceed to payment after saving
+        const ids = response.data.map((item) => item.id);
+        // Adjust based on your backend response
+        setDatabaseOrderId(ids);
+
+        setShowPaymentForm(false); // Proceed to payment after saving
       } else {
         console.error("Failed to save order:", response.data);
       }
@@ -455,7 +461,6 @@ const ShoppingCart = () => {
       alert("Failed to place order. Please try again.");
     }
   };
-
   useEffect(() => {
     const storedTokens = {
       authToken: localStorage.getItem("authToken"),
@@ -947,10 +952,7 @@ const ShoppingCart = () => {
                   <div className="checkoutSection">
                     {/* ... existing checkout form ... */}
                     <button
-                      onClick={() => {
-                        handlePlaceOrderClick();
-                        handleOrderPlacement();
-                      }}
+                      onClick={handlePlaceOrderClick}
                       disabled={!isFormValid}
                     >
                       Place Order
@@ -975,7 +977,7 @@ const ShoppingCart = () => {
                 <div className="orderInfo">
                   <div className="orderInfoItem">
                     <p>Order Number</p>
-                    <h4>{orderDetails.orderNumber}</h4>
+                    <h4>{databaseOrderId}</h4>
                   </div>
                   <div className="orderInfoItem">
                     <p>Date</p>

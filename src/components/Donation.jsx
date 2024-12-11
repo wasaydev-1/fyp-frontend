@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import boxImage1 from "../modules/Icons/donate-icon.png";
 import boxImage2 from "../modules/Icons/join-hands.png";
 import boxImage3 from "../modules/Icons/plant-trees.png";
@@ -7,6 +7,9 @@ import { loadStripe } from "@stripe/stripe-js";
 
 import PaymentForm from "./PaymentForm";
 import "./donation.css";
+import axios from "axios";
+import { decodeJwt } from "jose";
+import { useNavigate } from "react-router-dom";
 
 const stripePromise = loadStripe(
   "pk_test_51QSf3dGUTm1vPJ2W4Uu12jvAdeFeas7P2XodI9pnknOOb8twSbw2t8j7LxY49ja4yLyYWZiucy2lsgSF3UZERUq1006adhqCdr"
@@ -14,8 +17,13 @@ const stripePromise = loadStripe(
 const Donation = () => {
   const [trees, setTrees] = useState(0);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [error, setError] = useState();
+  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    id: "",
+  });
   const maxTrees = 100;
-  const costPerTree = 5;
+  const costPerTree = 100;
 
   const handleTreeChange = (event) => {
     setTrees(Number(event.target.value));
@@ -30,6 +38,117 @@ const Donation = () => {
   };
 
   const totalPrice = trees * costPerTree;
+
+  const handleOrderPlacement = async () => {
+    // // Validate required fields
+    // if (!location || !address) {
+    //   alert("Please select a location and enter your complete address.");
+    //   return;
+    // }
+    // Map selected products to include their IDs and quantities
+
+    // Prepare order data payload
+    const orderData = {
+      userId: userInfo.id, // User ID
+      quantity: trees,
+      total: totalPrice,
+
+      // Complete address
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/donation",
+        orderData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Auth token
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        console.log("Order saved successfully:", response.data);
+
+        setShowPaymentForm(false); // Proceed to payment after saving
+      } else {
+        console.error("Failed to save order:", response.data);
+      }
+    } catch (err) {
+      console.error("Error saving order:", err);
+      // Optionally show an error message to the user
+      alert("Failed to place order. Please try again.");
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    // Call handleOrderPlacement after successful payment
+    handleOrderPlacement();
+  };
+
+  useEffect(() => {
+    const storedTokens = {
+      authToken: localStorage.getItem("authToken"),
+      token: localStorage.getItem("token"),
+      userToken: localStorage.getItem("userToken"),
+    };
+
+    const authToken =
+      storedTokens.authToken || storedTokens.token || storedTokens.userToken;
+
+    if (!authToken) {
+      console.error("No authentication token found in any storage key");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/user", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log("Full User Details Response:", response.data);
+
+        if (response.data && response.data.data) {
+          // Decode the authToken to get the user ID
+          const decodedToken = decodeJwt(authToken);
+          console.log("Decoded Token:", decodedToken);
+
+          // `sub` represents the user ID in the token
+          const userId = decodedToken.sub;
+
+          // Find the user matching the decoded user ID
+          const userDetails = response.data.data.find(
+            (user) => user.id === userId
+          );
+
+          if (userDetails) {
+            setUserInfo(userDetails);
+          } else {
+            console.warn("No matching user found for the given token.");
+            setError("No user details found.");
+          }
+        }
+      } catch (err) {
+        console.error("Detailed Error:", {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError("Failed to fetch user details");
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
 
   return (
     <div>
@@ -142,6 +261,7 @@ const Donation = () => {
             <Elements stripe={stripePromise}>
               <PaymentForm
                 onClose={handleClosePaymentForm}
+                onPaymentSuccess={handlePaymentSuccess}
                 totalPrice={totalPrice}
               />
             </Elements>

@@ -475,14 +475,12 @@ function App() {
             path="/donation"
             element={
               <ProtectedRoute>
-                <RestrictedRoute>
-                  <>
-                    {/* Add CustomScrollbar component to handle custom scrollbars */}
-                    <CustomScrollbar />
-                    <Navbar />
-                    <Donation />
-                  </>
-                </RestrictedRoute>
+                <>
+                  {/* Add CustomScrollbar component to handle custom scrollbars */}
+                  <CustomScrollbar />
+                  <Navbar />
+                  <Donation />
+                </>
               </ProtectedRoute>
             }
           />
