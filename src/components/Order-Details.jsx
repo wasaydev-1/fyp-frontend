@@ -20,12 +20,55 @@ const DeliveryForm = () => {
   const locationState = useLocation();
   const { location, locationName, city, selectedProducts } =
     locationState.state || {}; // Destructure passed state
-
   // State to track the selected delivery fee and tip
   const [deliveryFee] = useState(500); // Fixed delivery fee
   const [tip, setTip] = useState(0); // New state for tip
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const navigate = useNavigate();
+  const handleOrderPlacement = async () => {
+    // Map selected products to include their IDs and quantities
+    const products = selectedProducts.map((product) => ({
+      plantId: product.id,
+      quantity: product.quantity,
+    }));
+
+    // Extract latitude and longitude from the location array
+    const latitude = location[0];
+    const longitude = location[1];
+
+    // Prepare order data payload
+    const orderData = {
+      userId: userInfo.id, // User ID
+      plants: products, // Array of plantId and quantity
+
+      latitude, // Extracted latitude
+      longitude, // Extracted longitude
+      locationName,
+      total, // Total amount
+      isSubscription: false, // No subscription
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/services",
+        orderData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Auth token
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        console.log("Order saved successfully:", response.data);
+        setShowPaymentForm(true); // Proceed to payment after saving
+      } else {
+        console.error("Failed to save order:", response.data);
+      }
+    } catch (err) {
+      console.error("Error saving order:", err);
+    }
+  };
 
   useEffect(() => {
     const storedTokens = {
@@ -275,7 +318,10 @@ const DeliveryForm = () => {
         </button> */}
         {!showPaymentForm ? (
           <button
-            onClick={() => setShowPaymentForm(true)}
+            onClick={() => {
+              setShowPaymentForm(true);
+              handleOrderPlacement();
+            }}
             className="mt-4 w-full bg-green-500 text-white py-2 rounded-md"
           >
             Proceed to Payment

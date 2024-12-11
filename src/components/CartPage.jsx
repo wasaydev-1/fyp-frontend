@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
 import "./CartPage.css";
 import { MdOutlineClose } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import success from "../Assets/success.png";
 import { useCart } from "../context/CartContext";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
 import PaymentForm from "./PaymentForm";
 import axios from "axios";
+import { decodeJwt } from "jose";
 const stripePromise = loadStripe(
   "pk_test_51QSf3dGUTm1vPJ2W4Uu12jvAdeFeas7P2XodI9pnknOOb8twSbw2t8j7LxY49ja4yLyYWZiucy2lsgSF3UZERUq1006adhqCdr"
 );
@@ -21,6 +22,7 @@ const ShoppingCart = () => {
   } = useCart();
   const [activeTab, setActiveTab] = useState("cartTab1");
   const [payments, setPayments] = useState(false);
+  const navigate = useNavigate();
   const [selectedPayment, setSelectedPayment] = useState(
     "Credit/Debit Card Payment"
   );
@@ -41,6 +43,9 @@ const ShoppingCart = () => {
   const [isOrderClicked, setIsOrderClicked] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [orderDetails, setOrderDetails] = useState(null);
+  const [userInfo, setUserInfo] = useState({
+    id: "",
+  });
   const [orderNumber, setOrderNumber] = useState(() => {
     const storedOrderNumber = localStorage.getItem("orderNumber");
     return storedOrderNumber
@@ -348,13 +353,14 @@ const ShoppingCart = () => {
   //   (total, item) => total + item.price * item.quantity,
   //   0
   // );
+  const VAT_AMOUNT = 111;
   const totalPrice = orderDetails
     ? orderDetails.items.reduce(
         (total, item) => total + item.price * item.quantity,
         0
       )
     : cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-
+  const total = totalPrice + VAT_AMOUNT;
   const handleAddToCart = (product, quantity) => {
     const size = "M";
     const color = "Red";
@@ -397,6 +403,122 @@ const ShoppingCart = () => {
 
     addToCart(product, newQuantity, product.size, product.color);
   };
+
+  const handleOrderPlacement = async () => {
+    // // Validate required fields
+    // if (!location || !address) {
+    //   alert("Please select a location and enter your complete address.");
+    //   return;
+    // }
+    console.log(cartItems);
+    // Map selected products to include their IDs and quantities
+    const products = Object.values(cartItems).map((product) => ({
+      plantId: product.productId,
+      quantity: product.quantity,
+      name: product.name,
+    }));
+
+    // Prepare order data payload
+    const orderData = {
+      userId: userInfo.id, // User ID
+      plants: products, // Array of plantId and quantity
+      total, // Total amount
+      firstName,
+      lastName,
+      email,
+      phone,
+      address,
+      postcode,
+      // Complete address
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/order",
+        orderData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Auth token
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        console.log("Order saved successfully:", response.data);
+        setShowPaymentForm(true); // Proceed to payment after saving
+      } else {
+        console.error("Failed to save order:", response.data);
+      }
+    } catch (err) {
+      console.error("Error saving order:", err);
+      // Optionally show an error message to the user
+      alert("Failed to place order. Please try again.");
+    }
+  };
+
+  useEffect(() => {
+    const storedTokens = {
+      authToken: localStorage.getItem("authToken"),
+      token: localStorage.getItem("token"),
+      userToken: localStorage.getItem("userToken"),
+    };
+
+    const authToken =
+      storedTokens.authToken || storedTokens.token || storedTokens.userToken;
+
+    if (!authToken) {
+      console.error("No authentication token found in any storage key");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/user", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log("Full User Details Response:", response.data);
+
+        if (response.data && response.data.data) {
+          // Decode the authToken to get the user ID
+          const decodedToken = decodeJwt(authToken);
+          console.log("Decoded Token:", decodedToken);
+
+          // `sub` represents the user ID in the token
+          const userId = decodedToken.sub;
+
+          // Find the user matching the decoded user ID
+          const userDetails = response.data.data.find(
+            (user) => user.id === userId
+          );
+
+          if (userDetails) {
+            setUserInfo(userDetails);
+          } else {
+            console.warn("No matching user found for the given token.");
+            setError("No user details found.");
+          }
+        }
+      } catch (err) {
+        console.error("Detailed Error:", {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError("Failed to fetch user details");
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
 
   return (
     <div>
@@ -599,7 +721,7 @@ const ShoppingCart = () => {
                         <th>Total</th>
                         <td>
                           Rs.
-                          {(totalPrice === 0 ? 0 : totalPrice + 111).toFixed(2)}
+                          {(totalPrice === 0 ? 0 : totalPrice).toFixed(2)}
                         </td>
                       </tr>
                     </tbody>
@@ -785,9 +907,7 @@ const ShoppingCart = () => {
                           <th style={{ fontWeight: "bold" }}>Total</th>
                           <td>
                             Rs.
-                            {totalPrice === 0
-                              ? 0
-                              : (totalPrice + 111).toFixed(2)}
+                            {totalPrice === 0 ? 0 : total.toFixed(2)}
                           </td>
                         </tr>
                       </tbody>
@@ -827,7 +947,10 @@ const ShoppingCart = () => {
                   <div className="checkoutSection">
                     {/* ... existing checkout form ... */}
                     <button
-                      onClick={handlePlaceOrderClick}
+                      onClick={() => {
+                        handlePlaceOrderClick();
+                        handleOrderPlacement();
+                      }}
                       disabled={!isFormValid}
                     >
                       Place Order

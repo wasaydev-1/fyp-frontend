@@ -12,6 +12,7 @@ import googleLogo from "../Modules/Logo/google-icon.png";
 import showPasswordIcon from "../Modules/Logo/show-password.png";
 import hidePasswordIcon from "../Modules/Logo/hide-password.png";
 import axios from "axios";
+import { decodeJwt } from "jose";
 
 const Login = () => {
   const images = [image1, image2, image3, image4];
@@ -32,7 +33,10 @@ const Login = () => {
   const [typingTimeout, setTypingTimeout] = useState(null);
   const [loginError, setLoginError] = useState("");
   const [passwordError, setPasswordError] = useState("");
-
+  const [error, setError] = useState("");
+  const [userInfo, setUserInfo] = useState({
+    role: "",
+  });
   // Logout functionality
   const handleLogout = () => {
     localStorage.removeItem("authToken");
@@ -116,6 +120,70 @@ const Login = () => {
     }
   };
 
+  useEffect(() => {
+    const storedTokens = {
+      authToken: localStorage.getItem("authToken"),
+      token: localStorage.getItem("token"),
+      userToken: localStorage.getItem("userToken"),
+    };
+
+    const authToken =
+      storedTokens.authToken || storedTokens.token || storedTokens.userToken;
+
+    if (!authToken) {
+      console.error("No authentication token found in any storage key");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/user", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log("Full User Details Response:", response.data);
+
+        if (response.data && response.data.data) {
+          // Decode the authToken to get the user ID
+          const decodedToken = decodeJwt(authToken);
+          console.log("Decoded Token:", decodedToken);
+
+          // `sub` represents the user ID in the token
+          const userId = decodedToken.sub;
+
+          // Find the user matching the decoded user ID
+          const userDetails = response.data.data.find(
+            (user) => user.id === userId
+          );
+
+          if (userDetails) {
+            setUserInfo(userDetails);
+          } else {
+            console.warn("No matching user found for the given token.");
+            setError("No user details found.");
+          }
+        }
+      } catch (err) {
+        console.error("Detailed Error:", {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError("Failed to fetch user details");
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
+
   const handleSubmit = async (event) => {
     event.preventDefault();
     setLoginError("");
@@ -135,8 +203,13 @@ const Login = () => {
       localStorage.setItem("authToken", response.data.data.token);
       console.log("res", response.data.data.token);
       // Redirect to the previous page or home
-      const origin = location.state?.from?.pathname || "/";
-      navigate(origin);
+
+      if (userInfo.role === "Admin") {
+        navigate("/admin/dashboard"); // Redirect to admin dashboard
+      } else {
+        const origin = location.state?.from?.pathname || "/";
+        navigate(origin); // Redirect to the previous page or home for non-admins
+      }
     } catch (error) {
       if (error.response) {
         const message =
@@ -151,6 +224,51 @@ const Login = () => {
       }
     }
   };
+
+  // const handleSubmit = async (event) => {
+  //   event.preventDefault();
+  //   setLoginError("");
+
+  //   if (emailError || passwordError) {
+  //     setLoginError("Please fix the errors before submitting.");
+  //     return;
+  //   }
+
+  //   try {
+  //     const response = await axios.post("http://localhost:3000/auth", {
+  //       email,
+  //       password,
+  //     });
+
+  //     // Store the token in local storage
+  //     const token = response.data.data.token;
+  //     localStorage.setItem("authToken", token);
+
+  //     // Decode the token to get user information
+  //     const decodedToken = JSON.parse(atob(token.split(".")[1]));
+  //     const userRole = decodedToken.role;
+  //     console.log(userRole);
+  //     // Redirect based on the user's role
+  //     if (userRole === "Admin") {
+  //       navigate("/admin/dashboard"); // Redirect to admin dashboard
+  //     } else {
+  //       const origin = location.state?.from?.pathname || "/";
+  //       navigate(origin); // Redirect to previous page or home for non-admins
+  //     }
+  //   } catch (error) {
+  //     if (error.response) {
+  //       const message =
+  //         typeof error.response.data.message === "string"
+  //           ? error.response.data.message
+  //           : "Login failed. Please try again.";
+  //       setLoginError(message);
+  //     } else if (error.request) {
+  //       setLoginError("No response from server. Please check your connection.");
+  //     } else {
+  //       setLoginError("An error occurred during login.");
+  //     }
+  //   }
+  // };
 
   const handleFocus = (event) => {
     event.target.classList.add("focused");

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { CheckIcon } from "@heroicons/react/20/solid";
 import PaymentForm from "./PaymentForm";
 import { Elements } from "@stripe/react-stripe-js";
 import { loadStripe } from "@stripe/stripe-js";
+import axios from "axios";
+import { decodeJwt } from "jose";
 const stripePromise = loadStripe(
   "pk_test_51QSf3dGUTm1vPJ2W4Uu12jvAdeFeas7P2XodI9pnknOOb8twSbw2t8j7LxY49ja4yLyYWZiucy2lsgSF3UZERUq1006adhqCdr"
 );
@@ -49,6 +51,125 @@ const Subscription = () => {
   const [months, setMonths] = useState(1);
   const [showMonthInput, setShowMonthInput] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
+  const [error, setError] = useState();
+  const navigate = useNavigate();
+  const [userInfo, setUserInfo] = useState({
+    id: "",
+    name: "",
+    email: "",
+  });
+  const handleOrderPlacement = async () => {
+    // Map selected products to include their IDs and quantities
+    const products = selectedProducts.map((product) => ({
+      plantId: product.id,
+      quantity: product.quantity,
+      name: product.name,
+    }));
+    const total = calculateTotalCost();
+
+    // Extract latitude and longitude from the location array
+    const latitude = location[0];
+    const longitude = location[1];
+
+    console.log("12", userInfo.id);
+    // Prepare order data payload
+    const orderData = {
+      userId: userInfo.id, // User ID
+      plants: products, // Array of plantId and quantity
+
+      latitude, // Extracted latitude
+      longitude, // Extracted longitude
+      locationName,
+      total, // Total amount
+      isSubscription: false, // No subscription
+      subscriptionMonths: months,
+    };
+
+    try {
+      const response = await axios.post(
+        "http://localhost:3000/services",
+        orderData,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("authToken")}`, // Auth token
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        console.log("Order saved successfully:", response.data);
+        setShowPaymentForm(true); // Proceed to payment after saving
+      } else {
+        console.error("Failed to save order:", response.data);
+      }
+    } catch (err) {
+      console.error("Error saving order:", err);
+    }
+  };
+
+  useEffect(() => {
+    const storedTokens = {
+      authToken: localStorage.getItem("authToken"),
+      token: localStorage.getItem("token"),
+      userToken: localStorage.getItem("userToken"),
+    };
+
+    const authToken =
+      storedTokens.authToken || storedTokens.token || storedTokens.userToken;
+
+    if (!authToken) {
+      console.error("No authentication token found in any storage key");
+      navigate("/login");
+      return;
+    }
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await axios.get("http://localhost:3000/user", {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
+
+        console.log("Full User Details Response:", response.data);
+
+        if (response.data && response.data.data) {
+          // Decode the authToken to get the user ID
+          const decodedToken = decodeJwt(authToken);
+          console.log("Decoded Token:", decodedToken);
+
+          // `sub` represents the user ID in the token
+          const userId = decodedToken.sub;
+
+          // Find the user matching the decoded user ID
+          const userDetails = response.data.data.find(
+            (user) => user.id === userId
+          );
+
+          if (userDetails) {
+            setUserInfo(userDetails);
+          } else {
+            console.warn("No matching user found for the given token.");
+            setError("No user details found.");
+          }
+        }
+      } catch (err) {
+        console.error("Detailed Error:", {
+          message: err.message,
+          response: err.response?.data,
+          status: err.response?.status,
+        });
+
+        if (err.response?.status === 401) {
+          navigate("/login");
+        } else {
+          setError("Failed to fetch user details");
+        }
+      }
+    };
+
+    fetchUserDetails();
+  }, [navigate]);
 
   const total = selectedProducts
     ? selectedProducts.reduce(
@@ -264,8 +385,10 @@ const Subscription = () => {
 
             {!showPaymentForm ? (
               <button
-                onClick={() => setShowPaymentForm(true)}
-                className="mt-4 w-full bg-green-600 text-white py-2 rounded-md"
+                onClick={() => {
+                  setShowPaymentForm(true);
+                }}
+                className="mt-4 w-full bg-green-500 text-white py-2 rounded-md"
               >
                 Proceed to Payment
               </button>
@@ -279,7 +402,8 @@ const Subscription = () => {
                 onClose={() => setShowPaymentForm(false)}
                 onPaymentSuccess={() => {
                   setShowPaymentForm(false);
-                  navigate("/subscription"); // Navigate to a success page after payment
+                  handleOrderPlacement();
+                  navigate("/plant-services"); // Navigate to a success page after payment
                 }}
               />
             </Elements>

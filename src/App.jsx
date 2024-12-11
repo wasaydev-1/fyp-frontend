@@ -36,6 +36,9 @@ import CustomScrollbar from "./components/CustomScrollbar"; // Import the Custom
 import DetailsProduct from "./components/DetailsProduct";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminDashboard from "./Admin/components/AdminDashboard";
+import PrivateRoute from "./components/PrivateRoute";
+import AdminRoute from "./components/AdminRoute";
+import RestrictedRoute from "./components/RestrictedRoute";
 
 function App() {
   const [favoriteCount, setFavoriteCount] = useState(0);
@@ -291,14 +294,17 @@ function App() {
               </>
             }
           />
-          <Route
+          {/* <Route
             path="/admin/dashboard"
             element={
-              <>
-                <AdminDashboard /> {/* Render the Admin Dashboard component */}
-              </>
+              <AdminRoute>
+                <AdminDashboard />
+              </AdminRoute>
             }
-          />
+          /> */}
+          <Route path="/admin/*" element={<AdminRoute />}>
+            <Route path="dashboard" element={<AdminDashboard />} />
+          </Route>
           <Route
             path="/admin/plants"
             element={
@@ -469,15 +475,18 @@ function App() {
             path="/donation"
             element={
               <ProtectedRoute>
-                <>
-                  {/* Add CustomScrollbar component to handle custom scrollbars */}
-                  <CustomScrollbar />
-                  <Navbar />
-                  <Donation />
-                </>
+                <RestrictedRoute>
+                  <>
+                    {/* Add CustomScrollbar component to handle custom scrollbars */}
+                    <CustomScrollbar />
+                    <Navbar />
+                    <Donation />
+                  </>
+                </RestrictedRoute>
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/contact"
             element={

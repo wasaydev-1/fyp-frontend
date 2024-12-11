@@ -164,6 +164,14 @@ const Register = () => {
           error.response.data.message ||
             "Registration failed. Please try again."
         );
+        // const errorMessage = error.response.data.message;
+        // if (role === "admin" && errorMessage.includes("Only one admin")) {
+        //   alert(
+        //     "An admin is already registered. Please choose a different role."
+        //   );
+        // } else {
+        //   setError(errorMessage); // Display other backend validation errors
+        // }
       } else if (error.request) {
         setRegistrationError(
           "No response from server. Please check your connection."
