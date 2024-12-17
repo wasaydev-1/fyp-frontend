@@ -942,10 +942,7 @@ const ShoppingCart = () => {
                     Your personal data will be used to process your order,
                     support your experience throughout this website, and for
                     other purposes described in our{" "}
-                    <Link to="/terms" onClick={scrollToTop}>
-                      Privacy Policy
-                    </Link>
-                    .
+                    <Link onClick={scrollToTop}>Privacy Policy</Link>.
                   </div>
                 </div>
                 {activeTab === "cartTab2" && (
@@ -977,7 +974,13 @@ const ShoppingCart = () => {
                 <div className="orderInfo">
                   <div className="orderInfoItem">
                     <p>Order Number</p>
-                    <h4>{databaseOrderId}</h4>
+                    <h4>
+                      {databaseOrderId.map((id, index) => (
+                        <span key={index} style={{ display: "block" }}>
+                          {id}
+                        </span>
+                      ))}
+                    </h4>
                   </div>
                   <div className="orderInfoItem">
                     <p>Date</p>

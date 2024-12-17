@@ -84,6 +84,7 @@ const Donation = () => {
   const handlePaymentSuccess = () => {
     // Call handleOrderPlacement after successful payment
     handleOrderPlacement();
+    setTrees(0);
   };
 
   useEffect(() => {

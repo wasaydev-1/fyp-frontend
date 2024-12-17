@@ -226,9 +226,15 @@ const DeliveryForm = () => {
               </label>
             </div>
           </div>
+          <button
+            onClick={() => navigate("/plant-services")}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none"
+          >
+            Back
+          </button>
 
           {/* Tip Section */}
-          <div>
+          {/* <div>
             <h2 className="text-2xl font-bold tracking-tight">
               Tip your rider
             </h2>
@@ -274,7 +280,7 @@ const DeliveryForm = () => {
                 Rs. 200.00
               </button>
             </div>
-          </div>
+          </div> */}
         </div>
       </div>
 
@@ -304,10 +310,10 @@ const DeliveryForm = () => {
             <span>Rs. {serviceFee}</span>
           </div>
 
-          <div className="flex justify-between text-sm">
+          {/* <div className="flex justify-between text-sm">
             <span>Tip</span>
             <span>Rs. {tip.toFixed(2)}</span>
-          </div>
+          </div> */}
         </div>
         <div className="mt-4 flex justify-between font-bold">
           <span>Total</span>

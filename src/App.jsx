@@ -294,17 +294,8 @@ function App() {
               </>
             }
           />
-          {/* <Route
-            path="/admin/dashboard"
-            element={
-              <AdminRoute>
-                <AdminDashboard />
-              </AdminRoute>
-            }
-          /> */}
-          <Route path="/admin/*" element={<AdminRoute />}>
-            <Route path="dashboard" element={<AdminDashboard />} />
-          </Route>
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
           <Route
             path="/admin/plants"
             element={

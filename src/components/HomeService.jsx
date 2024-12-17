@@ -150,7 +150,7 @@ const HomeService = ({ products }) => {
 
       if (response.status === 201) {
         console.log("Order saved successfully:", response.data);
-        setShowPaymentForm(true); // Proceed to payment after saving
+        setShowPaymentForm(false); // Proceed to payment after saving
       } else {
         console.error("Failed to save order:", response.data);
       }
@@ -159,6 +159,14 @@ const HomeService = ({ products }) => {
       // Optionally show an error message to the user
       alert("Failed to place order. Please try again.");
     }
+  };
+
+  const resetForm = () => {
+    setLocation("");
+    setSelectedProducts({});
+    setTotal(0);
+    setAddress("");
+    setShowPaymentForm(false);
   };
 
   useEffect(() => {
@@ -523,7 +531,7 @@ const HomeService = ({ products }) => {
             totalPrice={total}
             onClose={() => setShowPaymentForm(false)}
             onPaymentSuccess={() => {
-              setShowPaymentForm(false);
+              resetForm();
               handleOrderPlacement();
               navigate("/home-services"); // Navigate to a success page after payment
             }}

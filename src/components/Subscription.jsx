@@ -245,6 +245,12 @@ const Subscription = () => {
               Coordinates: {location[0]} , {location[1]}
             </p>
           </div>
+          <button
+            onClick={() => navigate("/plant-services")}
+            className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 focus:outline-none mt-10"
+          >
+            Back
+          </button>
         </div>
       </div>
 

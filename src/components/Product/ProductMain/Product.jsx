@@ -4,6 +4,8 @@ import Tooltip from "@mui/material/Tooltip";
 import Zoom from "@mui/material/Zoom";
 import { Link, useParams } from "react-router-dom";
 import { useCart } from "../../../context/CartContext";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import "./Product.css";
 
 const Product = ({ selectedProductID, setSelectedProductID }) => {
@@ -125,13 +127,38 @@ const Product = ({ selectedProductID, setSelectedProductID }) => {
 
         // Add the product to the cart
         addToCart(product, quantity, selectSize, highlightedColor);
-        alert("Item successfully added to the cart and reserved!");
+        toast.success("Item successfully added to the cart and reserved!", {
+          position: "top-center",
+          autoClose: 3000, // duration in ms
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "colored",
+        });
       } catch (error) {
         console.error("Error reserving the item:", error);
-        alert("Failed to reserve the item. Please try again.");
+        toast.error("Failed to reserve the item. Please try again.", {
+          position: "top-center",
+          autoClose: 3000, // 3 seconds
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          theme: "colored",
+        });
       }
     } else {
-      alert(`Only ${availableQuantity} items available in stock.`);
+      toast.warn(`Only ${availableQuantity} items available in stock.`, {
+        position: "top-right",
+        autoClose: 3000, // 3 seconds
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        theme: "colored",
+      });
     }
   };
 

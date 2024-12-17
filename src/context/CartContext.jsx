@@ -1,16 +1,52 @@
 import axios from "axios";
 import React, { createContext, useState, useContext, useEffect } from "react";
-
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 // Create Cart Context
 export const CartContext = createContext();
 
 // Create CartProvider component
 export const CartProvider = ({ children }) => {
-  const [cart, setCart] = useState([]);
+  // const [cart, setCart] = useState([]);
+  const [cart, setCart] = useState(() => {
+    // Check if we're in a browser environment
+    if (typeof window !== "undefined") {
+      const savedCart = localStorage.getItem("cart");
+      return savedCart ? JSON.parse(savedCart) : [];
+    }
+    return [];
+  });
 
   // Calculate the total number of items in the cart
   const cartCount = cart.reduce((total, item) => total + item.quantity, 0);
 
+  // const addToCart = (product, quantity, size, color) => {
+  //   const newProduct = {
+  //     productID: product.id,
+  //     name: product.name,
+  //     price: product.price,
+  //     image: product.image,
+  //     quantity,
+  //     size,
+  //     color,
+  //   };
+
+  //   // Check if the product already exists in the cart
+  //   const existingProductIndex = cart.findIndex(
+  //     (item) =>
+  //       item.id === product.id && item.size === size && item.color === color
+  //   );
+
+  //   if (existingProductIndex >= 0) {
+  //     // Update the quantity of the existing product
+  //     const updatedCart = [...cart];
+  //     updatedCart[existingProductIndex].quantity += quantity;
+  //     setCart(updatedCart);
+  //   } else {
+  //     // Add the new product to the cart
+  //     setCart((prevCart) => [...prevCart, newProduct]);
+  //   }
+  // };
   const addToCart = (product, quantity, size, color) => {
     const newProduct = {
       productID: product.id,
@@ -25,7 +61,9 @@ export const CartProvider = ({ children }) => {
     // Check if the product already exists in the cart
     const existingProductIndex = cart.findIndex(
       (item) =>
-        item.id === product.id && item.size === size && item.color === color
+        item.productID === product.id &&
+        item.size === size &&
+        item.color === color
     );
 
     if (existingProductIndex >= 0) {
